@@ -8,8 +8,8 @@ rollout ThreeJSExporter "ThreeJSExporter"
 (
 	-- Variables
 
-	local ostream,
-
+	local ostream, outputfilename, previewimg,
+	
 	headerFormat = "\"metadata\":
 {
 \"sourceFile\": \"%\",
@@ -63,6 +63,9 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		label dummy3 "--------------------------------------------------------" align:#left
 
+		edittext fileName "File name" labelOnTop:true fieldWidth:200 height:20
+		
+		--button btn_test "test"
 		button btn_export "Export selected objects"
 
 	)
@@ -444,7 +447,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 				fname = filenameFromPath bm.filename
 				Format "\"%\"    : \"%\",\n" label fname to:ostream
-
+				
 			)
 
 		)
@@ -486,9 +489,21 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 				t = mat.opacity / 100
 				s = mat.glossiness
-
+				shaderType = mat.shaderType
+				specularLevel = mat.specularLevel
+				soften = mat.soften
+				reflectionLevel = mat.reflectionLevel
+				reflection = mat.reflectionMapAmount
+				refraction = mat.refractionMapAmount
+				
 				Format "\"transparency\"  : %,\n" t to:ostream
 				Format "\"specularCoef\"  : %,\n" s to:ostream
+				Format "\"shaderType\" : %,\n" shaderType to:ostream
+				Format "\"specularLevel\" : %,\n" specularLevel to:ostream
+				Format "\"soften\" : %,\n" soften to:ostream
+				Format "\"reflectionLevel\": %,\n" reflectionLevel to:ostream
+				Format "\"reflection\": %,\n" reflection to:ostream
+				Format "\"refraction\": %,\n" refraction to:ostream
 
 				-- maps
 
@@ -1025,16 +1040,85 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 	)
 
+	-------------------------------------------------------------------------------------
+	-- Open and prepare a file handle for writing
 
+	function GetSaveFileStreamTest dir =
+	(
+		print "GetSaveFileStream2"
+		--ame2 = GetSaveFileName filename:fname types:"JavaScript file (*.js)|*.js|All Files(*.*)|*.*|"
+		-- fname2 == undefined then
+		--
+
+			--turn undefined
+
+		--
+		--print fname2
+		--local fname = GetSaveFileName filename:outputfilename types:"JavaScript file (*.js)|*.js|All Files(*.*)|*.*|"
+		local fname = dir + "\\" + outputfilename + ".js"
+		--fname += ".js"
+		print fname
+		ostream = CreateFile fname
+		if ostream == undefined then
+		(
+
+			MessageBox "Couldn't open file for writing !"
+			return undefined
+
+		)
+
+		return ostream
+	)
+	
+	function create3DMainXML bitmaps dir =
+	(
+		local out_name = dir+"\\main.xml"
+		try (
+		ostream2 = GetSaveFileStreamTest dir
+		
+		local out_file = CreateFile out_name
+		--OpenFile out_name mode:"w"
+		--print (getINISetting out_name)
+		local fname = getFilenameFile outputfilename
+		--zname = fname
+		fname += ".js"
+		--print zname
+		--print bitmaps.count
+		local str = Format "<?xml version='1.0' encoding='UTF-8'?>\r\n<sequences count='1'>\r\n\t<sequence item='0'>\r\n\t\t<object src='%'/>\r\n\t</sequence>\r\n</sequences>" fname
+		print str
+		--print str to:out_file
+		Format "<?xml version='1.0' encoding='UTF-8'?>\r\n<sequences count='1'>\r\n\t<sequence item='0'>\r\n\t\t<object src='%'/>\r\n\t</sequence>\r\n</sequences>" (fname) to:out_file
+		for m in bitmaps do
+		(
+			m2 = dir+"\\"+(filenamefrompath m)
+			--print m
+			--print m2
+			copyFile m m2
+			--copyFile m (dir+"\\"+(filenamefrompath m))
+		)			
+		--copy preview image over to save directory
+		local previewDest = dir+"\\preview.png"
+		copyFile previewimg previewDest
+		close out_file
+		)
+		catch
+		(
+			format "*** % ***\n" (getCurrentException())
+			if  out_file != undefined then
+				close out_file
+		)
+		
+	)
+	
 	-------------------------------------------------------------------------------------
 	-- Open and prepare a file handle for writing
 
 	function GetSaveFileStream =
 	(
-		zname = getFilenameFile maxFileName
+		local zname = getFilenameFile maxFileName
 		zname += ".js"
 
-		fname = GetSaveFileName filename:zname types:"JavaScript file (*.js)|*.js|All Files(*.*)|*.*|"
+		local fname = GetSaveFileName filename:zname types:"JavaScript file (*.js)|*.js|All Files(*.*)|*.*|"
 		if fname == undefined then
 		(
 
@@ -1053,13 +1137,75 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		return ostream
 	)
+	
+	
+	-------------------------------------------------------------------------------------
+	-- Get a preview.png
 
+	function GetPreview =
+	(
+		local zname = "preview.png"
+
+		previewimg = GetOpenFileName filename:zname types:"PNG file (*.png)|*.png|All Files(*.*)|*.*|"
+		if previewimg == undefined then
+		(
+
+			return undefined
+
+		)
+	)
+	
+	function GetSaveDirectory =
+	(
+		local zname = getFilenameFile maxFileName
+		local f = getSavePath caption:zname initialDir:(getDir #maxroot)
+		--print f
+		return f
+	)
+	
+	function getBitMaps =
+	(
+		local bitmaps = #()
+		for m in sceneMaterials do (
+			if classof m == StandardMaterial then (
+				--print m.reflectionLevel
+				--print m.reflectionMapAmount
+				--print m.reflectionMapEnable
+				--print m.refractionMapAmount
+				--print m.refractionMapEnable
+				for m2 in m.maps do (
+					if classof m2 == Bitmaptexture then (
+						print m2.bitmap.filename
+						append bitmaps m2.bitmap.filename
+					)
+					--print (classof m2)
+				)
+			)
+		)
+		return bitmaps
+	)
+	
 	-------------------------------------------------------------------------------------
 	-- Export button click handler
 
 	on btn_export pressed do
 	(
-		ostream = GetSaveFileStream()
+		GetPreview()
+		outputfilename = fileName.text
+		if outputfilename.count <= 0 then
+		(
+			messageBox "please enter a filename"
+			return false
+		)
+		if previewimg.count <= 0 then
+		(
+			messageBox "please pick a preview image"
+			return false
+		)
+		local savedir = GetSaveDirectory()
+		local bitmaps = getBitMaps()
+		create3DMainXML bitmaps savedir
+		--print savedir
 		if ostream != undefined then
 		(
 
@@ -1070,5 +1216,15 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 	)
 
+	-------------------------------------------------------------------------------------
+	-- Testing...
+	on btn_test pressed do
+	(
+		bitmaps = getBitMaps()
+		for m in bitmaps do (
+				print m
+		)
+	)
+	
 )
 createDialog ThreeJSExporter width:300
