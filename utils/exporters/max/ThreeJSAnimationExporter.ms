@@ -5,7 +5,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 	local ostream, outputfilename, previewimg, imgs = #(), uuids = #(),
 	-- 变量定义
 	chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-	headerFormat4 = "{\n\"metadata\":{\n\"version\": 4.4,\n\"type\": \"Object\",\n\"generator\": \"3DS Max ObjectExporter\",\n\"sourceFile\": \"%\"\n},\n",
+	headerFormat4 = "\n\"metadata\":{\n\"version\": 4.4,\n\"type\": \"Object\",\n\"generator\": \"3DS Max ObjectExporter\",\n\"sourceFile\": \"%\"\n},\n",
 	footerFormat4 = "}\n",
 	
 	threeMatrix = (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0]),
@@ -1749,7 +1749,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		-- Dump header
 
-		Format headerFormat maxFileName totalVertices totalNormals totalColors totalUvs totalFaces totalMaterials to:ostream
+		Format headerFormat4 maxFileName to:ostream-- totalVertices totalNormals totalColors totalUvs totalFaces totalMaterials to:ostream
 
 		-- Dump all materials in the scene
 
@@ -1783,7 +1783,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		-- Dump footer
 
-		Format footerFormat to:ostream
+		Format footerFormat4 to:ostream
 
 	)
 	-------------------------------------------------------------------------------------
