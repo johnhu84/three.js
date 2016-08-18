@@ -2,7 +2,11 @@ rollout ThreeJSExporter "ThreeJSExporter"
 (
 	-- Variables
 
-	local ostream, outputfilename, previewimg,
+	local ostream, outputfilename, previewimg, imgs = #(), uuids = #(),
+	-- 变量定义
+	chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+	headerFormat4 = "{\n\"metadata\":{\n\"version\": 4.4,\n\"type\": \"Object\",\n\"generator\": \"3DS Max ObjectExporter\",\n\"sourceFile\": \"%\"\n},\n",
+	footerFormat4 = "}\n",
 	
 	threeMatrix = (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0]),
 
@@ -103,7 +107,51 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 	)
 	
+	-- 函数定义
 	
+	function generateUUID =
+	(
+		local uuid = "", rnd = 0
+		for i = 0 to 36 do
+		(
+			if i == 8 or i == 13 or i == 18 or i == 23 then
+				uuid = uuid + "-"
+			else if i == 14 then
+				uuid = uuid + "4"
+			else
+			(
+				if rnd <= 0x02 then
+					rnd = 0x2000000 + ((random 0x0 0x1000000) as integer)
+				r = bit.and rnd 0xf
+				rnd = bit.shift rnd -4
+				if i == 19 then
+					uuid = uuid + chars[(bit.or (bit.and r 0x3) 0x8) + 1]
+				else 
+					uuid = uuid + chars[r + 1]
+			)
+		)
+		return uuid
+	)
+	
+	function DumpImages imgs uuids =
+	(
+		Format "\"images\": [" to:ostream
+		
+		num = imgs.count
+		
+		local filename;
+		
+		if num > 0 then
+		(
+			for i = 1 to (num - 1) do
+			(
+				filename = filenamefromPath imgs[i]
+				Format "{\n\"uuid\": \"%\",\n\"url\": \"%\"\n},\n" uuids[i] filename to:ostream
+			)
+			filename = filenamefromPath imgs[num]
+			Format "{\n\"uuid\": \"%\",\n\"url\": \"%\"\n}\n]" uuids[num] filename to:ostream
+		)
+	)
 
 	-------------------------------------------------------------------------------------
 	-- Dump vertices
@@ -478,10 +526,13 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 			if bm != undefined then
 			(
-
-				fname = filenameFromPath bm.filename
+				local index = findItem imgs bm.filename
+				
+				--fname = filenameFromPath bm.filename
+				Format "\"%\"    : \"%\",\n" label uuids(index) to:ostream
+				--fname = filenameFromPath bm.filename
 				--Format "\"%\"    : \"skins/%\",\n" label fname to:ostream
-				Format "\"%\"    : \"%\",\n" label fname to:ostream
+				--Format "\"%\"    : \"%\",\n" label fname to:ostream
 			)
 
 		)
@@ -1528,6 +1579,40 @@ rollout ThreeJSExporter "ThreeJSExporter"
 		)
 	)
 	
+	function getBitMaps =
+	(
+		local bitmaps = #()
+		for m in sceneMaterials do (
+			if classof m == StandardMaterial then (
+				--print m.reflectionLevel
+				--print m.reflectionMapAmount
+				--print m.reflectionMapEnable
+				--print m.refractionMapAmount
+				--print m.refractionMapEnable
+				for m2 in m.maps do (
+					if classof m2 == Bitmaptexture then (
+						print m2.bitmap.filename
+						append bitmaps m2.bitmap.filename
+					)
+					--print (classof m2)
+				)
+			)
+		)
+		imgs = bitmaps
+		return bitmaps
+	)
+	
+	function getUUIDArr count =
+	(
+		local uuidArr = #()
+		for i = 0 to count do (
+			local uuid = generateUUID()
+			append uuidArr uuid
+		)
+		uuids = uuidArr
+		return uuidArr
+	)
+	
 	-------------------------------------------------------------------------------------
 	-- Export scene
 	-- 
@@ -1655,6 +1740,9 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		)
 
+		local bitmaps = getBitMaps()
+		local uuidarr = getUUIDArr bitmaps.count
+		
 		-- Dump model
 
 		Format "{\n\n" to:ostream
@@ -1669,6 +1757,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		-- Dump merged data from all selected geometries
 
+		Format ",\n\"data\": {\n" to:ostream
 		DumpVertices mergedVertices
 		
 		if hasMorph then
@@ -1680,6 +1769,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 		DumpColors mergedColors useColors
 		DumpUvs mergedUvs
 		DumpFaces mergedFaces useColors
+		Format "}\n" to:ostream
 		
 		if hasSkin then
 		(
