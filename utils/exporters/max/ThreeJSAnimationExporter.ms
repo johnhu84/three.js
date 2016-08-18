@@ -529,7 +529,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 				local index = findItem imgs bm.filename
 				
 				--fname = filenameFromPath bm.filename
-				Format "\"%\"    : \"%\",\n" label uuids(index) to:ostream
+				Format "\"%\"    : \"%\",\n" label uuids[index] to:ostream
 				--fname = filenameFromPath bm.filename
 				--Format "\"%\"    : \"skins/%\",\n" label fname to:ostream
 				--Format "\"%\"    : \"%\",\n" label fname to:ostream
@@ -1757,7 +1757,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		-- Dump merged data from all selected geometries
 
-		Format ",\n\"data\": {\n" to:ostream
+		Format "\"data\": {\n" to:ostream
 		DumpVertices mergedVertices
 		
 		if hasMorph then
@@ -1903,28 +1903,6 @@ rollout ThreeJSExporter "ThreeJSExporter"
 		local f = getSavePath caption:zname initialDir:(getDir #maxroot)
 		--print f
 		return f
-	)
-	
-	function getBitMaps =
-	(
-		local bitmaps = #()
-		for m in sceneMaterials do (
-			if classof m == StandardMaterial then (
-				--print m.reflectionLevel
-				--print m.reflectionMapAmount
-				--print m.reflectionMapEnable
-				--print m.refractionMapAmount
-				--print m.refractionMapEnable
-				for m2 in m.maps do (
-					if classof m2 == Bitmaptexture then (
-						print m2.bitmap.filename
-						append bitmaps m2.bitmap.filename
-					)
-					--print (classof m2)
-				)
-			)
-		)
-		return bitmaps
 	)
 	
 	-------------------------------------------------------------------------------------

@@ -495,9 +495,8 @@ rollout ThreeJSExporter "ThreeJSExporter"
 			if bm != undefined then
 			(
 				local index = findItem imgs bm.filename
-				
 				--fname = filenameFromPath bm.filename
-				Format "\"%\"    : \"%\",\n" label uuids(index) to:ostream
+				Format "\"%\"    : \"%\",\n" label uuids[index] to:ostream
 				
 			)
 
@@ -1118,7 +1117,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		DumpImages bitmaps uuidarr
 		
-		Format ",\n\"data\": {\n" to:ostream
+		Format "\"data\": {\n" to:ostream
 		DumpVertices mergedVertices
 		DumpNormals mergedNormals
 		DumpColors mergedColors useColors
