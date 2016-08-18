@@ -117,7 +117,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 				Format "{\n\"uuid\": \"%\",\n\"url\": \"%\"\n},\n" uuids[i] filename to:ostream
 			)
 			filename = filenamefromPath imgs[num]
-			Format "{\n\"uuid\": \"%\",\n\"url\": \"%\"\n}\n]" uuids[num] filename to:ostream
+			Format "{\n\"uuid\": \"%\",\n\"url\": \"%\"\n}\n]," uuids[num] filename to:ostream
 		)
 	)
 	
