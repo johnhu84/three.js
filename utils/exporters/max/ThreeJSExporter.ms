@@ -63,6 +63,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 
 		label dummy3 "--------------------------------------------------------" align:#left
 
+		checkbox exportLights "Export lights" checked:true enabled:true
 		edittext fileName "File name" labelOnTop:true fieldWidth:200 height:20
 		
 		--button btn_test "test"
@@ -1041,11 +1042,17 @@ rollout ThreeJSExporter "ThreeJSExporter"
 	)
 
 	-------------------------------------------------------------------------------------
+	-- Export scene lights
+	function ExportSceneLights scenelights =
+	(
+		
+	)
+	
+	-------------------------------------------------------------------------------------
 	-- Open and prepare a file handle for writing
 
-	function GetSaveFileStreamTest dir =
+	function GetSaveFileStream dir =
 	(
-		print "GetSaveFileStream2"
 		--ame2 = GetSaveFileName filename:fname types:"JavaScript file (*.js)|*.js|All Files(*.*)|*.*|"
 		-- fname2 == undefined then
 		--
@@ -1074,7 +1081,7 @@ rollout ThreeJSExporter "ThreeJSExporter"
 	(
 		local out_name = dir+"\\main.xml"
 		try (
-		ostream2 = GetSaveFileStreamTest dir
+		ostream2 = GetSaveFileStream dir
 		
 		local out_file = CreateFile out_name
 		--OpenFile out_name mode:"w"
@@ -1109,35 +1116,6 @@ rollout ThreeJSExporter "ThreeJSExporter"
 		)
 		
 	)
-	
-	-------------------------------------------------------------------------------------
-	-- Open and prepare a file handle for writing
-
-	function GetSaveFileStream =
-	(
-		local zname = getFilenameFile maxFileName
-		zname += ".js"
-
-		local fname = GetSaveFileName filename:zname types:"JavaScript file (*.js)|*.js|All Files(*.*)|*.*|"
-		if fname == undefined then
-		(
-
-			return undefined
-
-		)
-
-		ostream = CreateFile fname
-		if ostream == undefined then
-		(
-
-			MessageBox "Couldn't open file for writing !"
-			return undefined
-
-		)
-
-		return ostream
-	)
-	
 	
 	-------------------------------------------------------------------------------------
 	-- Get a preview.png
@@ -1185,6 +1163,17 @@ rollout ThreeJSExporter "ThreeJSExporter"
 		return bitmaps
 	)
 	
+	function getLights =
+	(
+		local scenelights = #()
+		for l in lights do (
+			if superclassof l == light then (
+				append scenelights l
+			)
+		)
+		return scenelights
+	)
+	
 	-------------------------------------------------------------------------------------
 	-- Export button click handler
 
@@ -1204,7 +1193,12 @@ rollout ThreeJSExporter "ThreeJSExporter"
 		)
 		local savedir = GetSaveDirectory()
 		local bitmaps = getBitMaps()
+		local scenelights = getLights()
+		
 		create3DMainXML bitmaps savedir
+		
+		ExportSceneLights scenelights
+		
 		--print savedir
 		if ostream != undefined then
 		(

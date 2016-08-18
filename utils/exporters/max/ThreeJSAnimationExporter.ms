@@ -480,8 +480,8 @@ rollout ThreeJSExporter "ThreeJSExporter"
 			(
 
 				fname = filenameFromPath bm.filename
-				Format "\"%\"    : \"skins/%\",\n" label fname to:ostream
-
+				--Format "\"%\"    : \"skins/%\",\n" label fname to:ostream
+				Format "\"%\"    : \"%\",\n" label fname to:ostream
 			)
 
 		)
