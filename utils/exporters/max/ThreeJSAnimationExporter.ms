@@ -752,6 +752,8 @@ rollout ThreeJSExporter "ThreeJSExporter"
 				t = mat.opacity / 100
 				s = mat.glossiness
 				shaderType = mat.shaderType
+				if shaderType == 6 then
+					metalness = mat.metalness
 				specularLevel = mat.specularLevel
 				soften = mat.soften
 				
@@ -760,7 +762,8 @@ rollout ThreeJSExporter "ThreeJSExporter"
 				Format "\"shaderType\" : %,\n" shaderType to:ostream
 				Format "\"specularLevel\" : %,\n" specularLevel to:ostream
 				Format "\"soften\" : %,\n" soften to:ostream
-
+				Format "\"metalness\" : %,\n" metalness to:ostream
+				
 				-- maps
 
 				DumpMap mat.diffuseMap  "mapDiffuse"
