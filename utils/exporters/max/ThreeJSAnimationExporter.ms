@@ -746,29 +746,35 @@ rollout ThreeJSExporter "ThreeJSExporter"
 				-- colors
 
 				DumpColor mat.diffuse  "colorDiffuse"
-				DumpColor mat.ambient  "colorAmbient"
-				DumpColor mat.specular "colorSpecular"
+				--if mat.ambient != undefined then
 
 				t = mat.opacity / 100
 				s = mat.glossiness
 				shaderType = mat.shaderType
-				if shaderType == 6 then
+				--6 is strauss shaderType, which does not seem to have ambient
+				if shaderType == 6 then (
 					metalness = mat.metalness
-				specularLevel = mat.specularLevel
-				soften = mat.soften
+					Format "\"metalness\" : %,\n" metalness to:ostream
+				) else (
+					DumpColor mat.ambient  "colorAmbient"
+					DumpColor mat.specular "colorSpecular"
+					DumpMap mat.ambientMap  "mapAmbient"
+					DumpMap mat.specularMap "mapSpecular"
+					specularLevel = mat.specularLevel
+					Format "\"specularLevel\" : %,\n" specularLevel to:ostream
+					soften = mat.soften
+					Format "\"soften\" : %,\n" soften to:ostream
+				)
+				
+				
 				
 				Format "\"transparency\"  : %,\n" t to:ostream
 				Format "\"specularCoef\"  : %,\n" s to:ostream
 				Format "\"shaderType\" : %,\n" shaderType to:ostream
-				Format "\"specularLevel\" : %,\n" specularLevel to:ostream
-				Format "\"soften\" : %,\n" soften to:ostream
-				Format "\"metalness\" : %,\n" metalness to:ostream
 				
 				-- maps
 
 				DumpMap mat.diffuseMap  "mapDiffuse"
-				DumpMap mat.ambientMap  "mapAmbient"
-				DumpMap mat.specularMap "mapSpecular"
 				DumpMap mat.bumpMap 	"mapBump"
 				DumpMap mat.opacityMap 	"mapAlpha"
 

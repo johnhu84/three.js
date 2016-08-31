@@ -485,35 +485,41 @@ rollout ThreeJSExporter "ThreeJSExporter"
 				-- colors
 
 				DumpColor mat.diffuse  "colorDiffuse"
-				DumpColor mat.ambient  "colorAmbient"
-				DumpColor mat.specular "colorSpecular"
+				--DumpColor mat.ambient  "colorAmbient"
+				--DumpColor mat.specular "colorSpecular"
 
 				t = mat.opacity / 100
 				s = mat.glossiness
 				shaderType = mat.shaderType
-				if shaderType == 6 then
+				--6 is strauss shaderType, which does not seem to have ambient
+				if shaderType == 6 then (
 					metalness = mat.metalness
-				specularLevel = mat.specularLevel
-				soften = mat.soften
-				reflectionLevel = mat.reflectionLevel
-				reflection = mat.reflectionMapAmount
-				refraction = mat.refractionMapAmount
+					Format "\"metalness\": %,\n" metalness to:ostream
+				) else (
+					specularLevel = mat.specularLevel
+					DumpColor mat.ambient  "colorAmbient"
+					DumpColor mat.specular "colorSpecular"
+					DumpMap mat.ambientMap  "mapAmbient"
+					DumpMap mat.specularMap "mapSpecular"
+					Format "\"specularLevel\" : %,\n" specularLevel to:ostream
+					soften = mat.soften
+					reflectionLevel = mat.reflectionLevel	
+					reflection = mat.reflectionMapAmount
+					refraction = mat.refractionMapAmount
+					Format "\"reflectionLevel\": %,\n" reflectionLevel to:ostream
+					Format "\"reflection\": %,\n" reflection to:ostream
+					Format "\"refraction\": %,\n" refraction to:ostream
+				)
+				
+				
 				
 				Format "\"transparency\"  : %,\n" t to:ostream
 				Format "\"specularCoef\"  : %,\n" s to:ostream
 				Format "\"shaderType\" : %,\n" shaderType to:ostream
-				Format "\"specularLevel\" : %,\n" specularLevel to:ostream
-				Format "\"soften\" : %,\n" soften to:ostream
-				Format "\"reflectionLevel\": %,\n" reflectionLevel to:ostream
-				Format "\"reflection\": %,\n" reflection to:ostream
-				Format "\"refraction\": %,\n" refraction to:ostream
-				Format "\"metalness\": %,\n" metalness to:ostream
 				
 				-- maps
 
 				DumpMap mat.diffuseMap  "mapDiffuse"
-				DumpMap mat.ambientMap  "mapAmbient"
-				DumpMap mat.specularMap "mapSpecular"
 				DumpMap mat.bumpMap 	"mapBump"
 				DumpMap mat.opacityMap 	"mapAlpha"
 
